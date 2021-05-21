@@ -1,20 +1,46 @@
 package ihm;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+
+
+/*
+TO DO
+- update all textFields when color mode is changed
+- being able to move colors in the list
+- working preview page
+ */
 
 public class Main extends Application {
 
-    public ListView<HBox> colorList;
+    public ListView<ColorLine> colorList;
+    public ComboBox<String> colorMode;
+
+    class addColorButtonEvent implements EventHandler<ActionEvent>{
+        public void handle(ActionEvent event){
+            addNewColor();
+        }
+    }
+    public void addNewColor(){
+        ColorLine ligneTest=new ColorLine(this);
+        colorList.getItems().add(ligneTest);
+    }
+
+    public String getColorMode(){
+        return this.colorMode.getValue();
+    }
 
     @Override
     public void start(Stage stage){
@@ -33,27 +59,23 @@ public class Main extends Application {
 
         root.getChildren().add(tabPane);
 
+
         //PAGE SELECTION
         HBox toolBar=new HBox();
 
-        Spinner<Integer> colorAmount=new Spinner<Integer>();
-        SpinnerValueFactory<Integer> valueFactory = //
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10, 0);
-        colorAmount.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
-        colorAmount.setValueFactory(valueFactory);
+        Button addColorButton =new Button("+ Add a new color");
+        addColorButton.addEventHandler(ActionEvent.ACTION, new addColorButtonEvent());
 
-        ComboBox<String> colorType=new ComboBox<String>();
-        colorType.getItems().addAll("(R,G,B)","(H,S,V)","#HEX");
-        toolBar.getChildren().addAll(colorAmount,colorType);
-        colorType.getSelectionModel().select(0);
+        colorMode=new ComboBox<String>();
+        colorMode.getItems().addAll("r,g,b","r,g,b (1)","h,s,b","h,s,b (1)","#rrggbb");
+        colorMode.getSelectionModel().select(0);
+
+
+        toolBar.getChildren().addAll(addColorButton,new Label("Color type :"),colorMode);
+
         rootSelection.setTop(toolBar);
 
-        HBox ligneTest=new HBox();
-        ColorPicker cp=new ColorPicker();
-        ligneTest.getChildren().add(cp);
-
-        colorList=new ListView<HBox>();
-        colorList.getItems().add(ligneTest);
+        colorList=new ListView<ColorLine>();
         rootSelection.setCenter(colorList);
 
         //PAGE PREVIEW
@@ -75,6 +97,7 @@ public class Main extends Application {
         rootPreview.getChildren().addAll(graphColor,line,graphGrayscale);
 
         Scene scene = new Scene(root, 1000, 800);
+        stage.getIcons().add(new Image("https://i.imgur.com/N2pKXMG.png"));
         stage.setScene(scene);
         stage.setTitle("Grayscale Color Picker");
         stage.show();
