@@ -35,12 +35,25 @@ public class Main extends Application {
 
         //PAGE SELECTION
         HBox toolBar=new HBox();
+
         Spinner<Integer> colorAmount=new Spinner<Integer>();
+        SpinnerValueFactory<Integer> valueFactory = //
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10, 0);
+        colorAmount.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
+        colorAmount.setValueFactory(valueFactory);
+
         ComboBox<String> colorType=new ComboBox<String>();
+        colorType.getItems().addAll("(R,G,B)","(H,S,V)","#HEX");
         toolBar.getChildren().addAll(colorAmount,colorType);
+        colorType.getSelectionModel().select(0);
         rootSelection.setTop(toolBar);
 
+        HBox ligneTest=new HBox();
+        ColorPicker cp=new ColorPicker();
+        ligneTest.getChildren().add(cp);
+
         colorList=new ListView<HBox>();
+        colorList.getItems().add(ligneTest);
         rootSelection.setCenter(colorList);
 
         //PAGE PREVIEW
