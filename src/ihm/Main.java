@@ -1,6 +1,8 @@
 package ihm;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -18,8 +20,8 @@ import javafx.event.ActionEvent;
 
 /*
 TO DO
-- automatically choose the best color when you add a new one
 - working preview page
+- automatically choose the best color when you add a new one
  */
 
 public class Main extends Application {
@@ -49,6 +51,10 @@ public class Main extends Application {
         return this.colorMode.getValue();
     }
 
+    public void updatePreview(){
+        System.out.println("update");
+    }
+
     @Override
     public void start(Stage stage){
 
@@ -63,6 +69,17 @@ public class Main extends Application {
         Tab tab1 = new Tab("Selection",rootSelection);
         Tab tab2 = new Tab("Preview",rootPreview);
         tabPane.getTabs().addAll(tab1,tab2);
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener(
+                new ChangeListener<Tab>() {
+                    public void changed(ObservableValue<? extends Tab> ov, Tab t, Tab t1) {
+                        if (t1==tab2){
+                            updatePreview();
+                        }
+
+                    }
+                }
+        );
 
         root.getChildren().add(tabPane);
 
