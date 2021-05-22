@@ -18,8 +18,7 @@ import javafx.event.ActionEvent;
 
 /*
 TO DO
-- update all textFields when color mode is changed
-- being able to move colors in the list
+- automatically choose the best color when you add a new one
 - working preview page
  */
 
@@ -28,11 +27,19 @@ public class Main extends Application {
     public ListView<ColorLine> colorList;
     public ComboBox<String> colorMode;
 
-    class addColorButtonEvent implements EventHandler<ActionEvent>{
+    class AddColorButtonEvent implements EventHandler<ActionEvent>{
         public void handle(ActionEvent event){
             addNewColor();
         }
     }
+    class ColorModeChangeEvent implements EventHandler<ActionEvent>{
+        public void handle(ActionEvent event){
+            for (ColorLine line : colorList.getItems()){
+                line.setTextField();
+            }
+        }
+    }
+
     public void addNewColor(){
         ColorLine ligneTest=new ColorLine(this);
         colorList.getItems().add(ligneTest);
@@ -64,12 +71,12 @@ public class Main extends Application {
         HBox toolBar=new HBox();
 
         Button addColorButton =new Button("+ Add a new color");
-        addColorButton.addEventHandler(ActionEvent.ACTION, new addColorButtonEvent());
+        addColorButton.addEventHandler(ActionEvent.ACTION, new AddColorButtonEvent());
 
         colorMode=new ComboBox<String>();
-        colorMode.getItems().addAll("r,g,b","r,g,b (1)","h,s,b","h,s,b (1)","#rrggbb");
+        colorMode.getItems().addAll("r,g,b","r,g,b (1)","h,s,b","h,s,b (1)","#rrggbb","0xrrggbb");
         colorMode.getSelectionModel().select(0);
-
+        colorMode.addEventHandler(ActionEvent.ACTION, new ColorModeChangeEvent());
 
         toolBar.getChildren().addAll(addColorButton,new Label("Color type :"),colorMode);
 
