@@ -1,27 +1,28 @@
 package ihm;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 
+import java.util.Collections;
+import java.util.Comparator;
 
 /*
 TO DO
-- working preview page
+- sorting the list
+- save/open palettes (.json ?)
 - automatically choose the best color when you add a new one
+- click on label to copy color code
  */
 
 public class Main extends Application {
@@ -52,42 +53,66 @@ public class Main extends Application {
     }
 
     public void updatePreview(){
-        System.out.println("update");
+
+
     }
 
     @Override
     public void start(Stage stage){
 
-        //ROOT GLOBALE ET ROOT POUR CHAQUE ONGLET
+        //ROOT
         VBox root = new VBox();
-        BorderPane rootSelection=new BorderPane();
-        HBox rootPreview=new HBox();
 
-        //ONGLETS
-        TabPane tabPane=new TabPane();
-        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        Tab tab1 = new Tab("Selection",rootSelection);
-        Tab tab2 = new Tab("Preview",rootPreview);
-        tabPane.getTabs().addAll(tab1,tab2);
+        //MENU BAR
+        MenuBar menu=new MenuBar();
+        MenuItem newEmptyPalette=new MenuItem("New Empty Palette");
+        MenuItem newPalette=new MenuItem("New Palette");
+        MenuItem openPalette=new MenuItem("Open Palette");
+        MenuItem savePalette=new MenuItem("Save Palette");
+        MenuItem savePaletteAs=new MenuItem("Save Palette As");
+        MenuItem exit=new MenuItem("Exit");
 
-        tabPane.getSelectionModel().selectedItemProperty().addListener(
-                new ChangeListener<Tab>() {
-                    public void changed(ObservableValue<? extends Tab> ov, Tab t, Tab t1) {
-                        if (t1==tab2){
-                            updatePreview();
-                        }
+        Menu fileMenu=new Menu("File");
+        fileMenu.getItems().addAll(newEmptyPalette,newPalette,new SeparatorMenuItem(),openPalette,savePalette,savePaletteAs,new SeparatorMenuItem(),exit);
 
-                    }
+        Menu editMenu=new Menu("Edit");
+        MenuItem sortGrayscale=new MenuItem("Sort by grayscale");
+        sortGrayscale.setOnAction(e -> {
+            Collections.sort(colorList.getItems(), new Comparator<ColorLine>() {
+                @Override
+                public int compare(ColorLine o1, ColorLine o2) {
+                    double gs1=ColorLine.grayScaleLevel(o1.getColor()),gs2=ColorLine.grayScaleLevel(o2.getColor());
+                    if (gs1>gs2)return 1;
+                    else if (gs1==gs2) return 0;
+                    else return -1;
                 }
-        );
+            });
+        });
+        MenuItem sortHue=new MenuItem("Sort by Hue");
+        sortHue.setOnAction(e -> {
+            Collections.sort(colorList.getItems(), new Comparator<ColorLine>() {
+                @Override
+                public int compare(ColorLine o1, ColorLine o2) {
+                    double h1=o1.getColor().getHue(),h2=o2.getColor().getHue();
+                    if (h1>h2)return 1;
+                    else if (h1==h2) return 0;
+                    else return -1;
+                }
+            });
+        });
+        editMenu.getItems().addAll(sortGrayscale,sortHue);
 
-        root.getChildren().add(tabPane);
+        Menu helpMenu=new Menu("Help");
+        MenuItem about=new MenuItem("About");
+        helpMenu.getItems().add(about);
 
+        menu.getMenus().addAll(fileMenu,editMenu,helpMenu);
 
-        //PAGE SELECTION
-        HBox toolBar=new HBox();
+        //TOOL BAR
+        ToolBar toolBar=new ToolBar();
 
         Button addColorButton =new Button("+ Add a new color");
+
         addColorButton.addEventHandler(ActionEvent.ACTION, new AddColorButtonEvent());
 
         colorMode=new ComboBox<String>();
@@ -95,30 +120,13 @@ public class Main extends Application {
         colorMode.getSelectionModel().select(0);
         colorMode.addEventHandler(ActionEvent.ACTION, new ColorModeChangeEvent());
 
-        toolBar.getChildren().addAll(addColorButton,new Label("Color type :"),colorMode);
+        toolBar.getItems().addAll(addColorButton,new Label("Color Mode : "),colorMode);
 
-        rootSelection.setTop(toolBar);
-
+        //COLOR LIST
         colorList=new ListView<ColorLine>();
-        rootSelection.setCenter(colorList);
 
-        //PAGE PREVIEW
-        CategoryAxis xAxis1=new CategoryAxis();
-        xAxis1.setLabel("x-axis");
-        NumberAxis yAxis1=new NumberAxis();
-        yAxis1.setLabel("y-axis");
-        BarChart<String,Number> graphColor=new BarChart<String,Number>(xAxis1,yAxis1);
 
-        Separator line=new Separator();
-        line.setOrientation(Orientation.VERTICAL);
-
-        CategoryAxis xAxis2=new CategoryAxis();
-        xAxis2.setLabel("x-axis");
-        NumberAxis yAxis2=new NumberAxis();
-        yAxis2.setLabel("y-axis");
-        BarChart<String,Number> graphGrayscale=new BarChart<String,Number>(xAxis2,yAxis2);
-
-        rootPreview.getChildren().addAll(graphColor,line,graphGrayscale);
+        root.getChildren().addAll(menu,toolBar,colorList);
 
         Scene scene = new Scene(root, 1000, 800);
         stage.getIcons().add(new Image("https://i.imgur.com/N2pKXMG.png"));

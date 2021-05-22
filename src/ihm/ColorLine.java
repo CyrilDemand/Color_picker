@@ -4,20 +4,16 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
 
-public class ColorLine extends HBox {
+public class ColorLine extends HBox{
 
     Main main;
     public ColorLine(Main main,Color defaultColor){
@@ -55,14 +51,18 @@ public class ColorLine extends HBox {
         TextField colorField=new TextField();
         colorField.setEditable(false);
         colorField.getStyleClass().add("copyable-label");
+        //colorField.setTooltip(new Tooltip("Click to copy"));
 
         Separator line2=new Separator();
         line2.setOrientation(Orientation.VERTICAL);
-        Canvas canvasColor=new Canvas(100,25);
-        Canvas canvasGrayscale=new Canvas(100,25);
+        Canvas canvasColor=new Canvas(200,25);
+        Canvas canvasGrayscale=new Canvas(200,25);
 
         colorPicker.getStyleClass().add("button");
         this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,line2,canvasColor,canvasGrayscale);
+
+
+
 
         this.update();
     }
@@ -95,14 +95,14 @@ public class ColorLine extends HBox {
     public void setCanvas(){
         GraphicsContext gc=this.getCanvasColor().getGraphicsContext2D();
         gc.setFill(this.getColor());
-        gc.fillRect(0,0,100,25);
+        gc.fillRect(0,0,200,25);
         gc.setStroke(new Color(0,0,0,1));
-        gc.strokeRect(0,0,100,25);
+        gc.strokeRect(0,0,200,25);
         gc=this.getCanvasGrayscale().getGraphicsContext2D();
         gc.setFill(ColorLine.toGrayscale(this.getColor()));
-        gc.fillRect(0,0,100,25);
+        gc.fillRect(0,0,200,25);
         gc.setStroke(new Color(0,0,0,1));
-        gc.strokeRect(0,0,100,25);
+        gc.strokeRect(0,0,200,25);
     }
 
     public Color getColor(){
@@ -113,8 +113,12 @@ public class ColorLine extends HBox {
         return this.main.colorList.getItems().indexOf(this);
     }
 
+    public static double grayScaleLevel(Color c){
+        return 0.3*c.getRed()+0.59*c.getGreen()+0.11*c.getBlue();
+    }
+
     public static Color toGrayscale(Color c){
-        double grayScale=0.3*c.getRed()+0.59*c.getGreen()+0.11*c.getBlue();
+        double grayScale=ColorLine.grayScaleLevel(c);
         return new Color(grayScale,grayScale,grayScale,1);
     }
 
@@ -147,6 +151,4 @@ public class ColorLine extends HBox {
 
         return res;
     }
-
-
 }
