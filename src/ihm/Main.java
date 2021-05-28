@@ -20,9 +20,10 @@ import java.util.Comparator;
 
 /*
 TO DO
+    - Ameliorate optimisation de couleur (teinte ET LUMINOSITE)
     - new/open/save
     - about menu
-    - selection en cascade & suppr/del pour virer une ligne
+    - suppr/del pour virer une ligne
     - Raccourcis clavier pour certaines options du menu
     - Icones ?
     - css ?

@@ -1,9 +1,12 @@
 package ihm;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
@@ -29,6 +32,7 @@ public class ColorLine extends HBox{
         bUp.addEventHandler(ActionEvent.ACTION, e->{
             try {
                 Collections.swap(main.colorList.getItems(), getColorListIndex(), getColorListIndex() - 1);
+                selectCorrespondingListViewItem();
             }catch (IndexOutOfBoundsException err){
                 System.out.println("already at the top");
             }
@@ -37,6 +41,7 @@ public class ColorLine extends HBox{
         bDown.addEventHandler(ActionEvent.ACTION, e->{
             try {
                 Collections.swap(main.colorList.getItems(), getColorListIndex(), getColorListIndex() + 1);
+                selectCorrespondingListViewItem();
             }catch (IndexOutOfBoundsException err){
                 System.out.println("already at the bottom");
             }
@@ -75,7 +80,26 @@ public class ColorLine extends HBox{
         colorPicker.getStyleClass().add("button");
         this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,copyButton,line2,canvasColor,canvasGrayscale);
 
+        for (Node n : this.getChildren()){
+            n.focusedProperty().addListener(new ChangeListener<Boolean>(){
+                @Override
+                public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue) {
+                    if (newPropertyValue){
+                        //System.out.println("Textfield on focus");
+                        selectCorrespondingListViewItem();
+                    }
+                }
+            });
+        }
+
         this.update();
+    }
+
+    public void selectCorrespondingListViewItem(){
+        int i=this.main.colorList.getItems().indexOf(this);
+        System.out.println(i);
+        this.main.colorList.getFocusModel().focus(i);
+        this.main.colorList.getSelectionModel().select(i);
     }
 
     public void update(){
