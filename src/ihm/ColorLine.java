@@ -7,15 +7,21 @@ import javafx.geometry.Orientation;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.text.DecimalFormat;
 import java.util.Collections;
 
 public class ColorLine extends HBox{
 
     Main main;
+
     public ColorLine(Main main,Color defaultColor){
         this.main=main;
 
@@ -51,7 +57,15 @@ public class ColorLine extends HBox{
         TextField colorField=new TextField();
         colorField.setEditable(false);
         colorField.getStyleClass().add("copyable-label");
-        //colorField.setTooltip(new Tooltip("Click to copy"));
+
+        Button copyButton=new Button("Copy");
+        copyButton.addEventHandler(ActionEvent.ACTION, e->{
+            String myString = ((TextField)this.getChildren().get(5)).getText();
+            System.out.println(myString);
+            StringSelection stringSelection = new StringSelection(myString);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(stringSelection, null);
+        });
 
         Separator line2=new Separator();
         line2.setOrientation(Orientation.VERTICAL);
@@ -59,7 +73,7 @@ public class ColorLine extends HBox{
         Canvas canvasGrayscale=new Canvas(200,25);
 
         colorPicker.getStyleClass().add("button");
-        this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,line2,canvasColor,canvasGrayscale);
+        this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,copyButton,line2,canvasColor,canvasGrayscale);
 
 
 
@@ -87,10 +101,10 @@ public class ColorLine extends HBox{
         getTextField().setText(ColorLine.colorToString(getColor(), this.main.colorMode.getValue()));
     }
     public Canvas getCanvasColor(){
-        return (Canvas)this.getChildren().get(7);
+        return (Canvas)this.getChildren().get(8);
     }
     public Canvas getCanvasGrayscale(){
-        return (Canvas)this.getChildren().get(8);
+        return (Canvas)this.getChildren().get(9);
     }
     public void setCanvas(){
         GraphicsContext gc=this.getCanvasColor().getGraphicsContext2D();

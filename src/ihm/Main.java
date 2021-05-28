@@ -19,10 +19,10 @@ import java.util.Comparator;
 
 /*
 TO DO
-- sorting the list
-- save/open palettes (.json ?)
-- automatically choose the best color when you add a new one
-- click on label to copy color code
+    - new/open/save
+    - automatically choose the best color when you add a new one
+    - about menu
+    - selection en cascade & suppr/del pour virer une ligne
  */
 
 public class Main extends Application {
