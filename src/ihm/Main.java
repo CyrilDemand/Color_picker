@@ -11,6 +11,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 
@@ -20,9 +21,11 @@ import java.util.Comparator;
 /*
 TO DO
     - new/open/save
-    - automatically choose the best color when you add a new one
     - about menu
     - selection en cascade & suppr/del pour virer une ligne
+    - Raccourcis clavier pour certaines options du menu
+    - Icones ?
+    - css ?
  */
 
 public class Main extends Application {
@@ -100,7 +103,12 @@ public class Main extends Application {
                 }
             });
         });
-        editMenu.getItems().addAll(sortGrayscale,sortHue);
+        MenuItem optimizeColors=new MenuItem("Optimize Colors");
+        optimizeColors.setOnAction(e -> {
+            optimizeColors();
+        });
+
+        editMenu.getItems().addAll(sortGrayscale,sortHue,new SeparatorMenuItem(),optimizeColors);
 
         Menu helpMenu=new Menu("Help");
         MenuItem about=new MenuItem("About");
@@ -133,6 +141,50 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setTitle("Grayscale Color Picker");
         stage.show();
+    }
+
+    public void optimizeColors(){
+        System.out.println("Optimization : ");
+        for (ColorLine line : this.colorList.getItems()){
+            Color color=line.getColor();
+
+            Color[] possibleColors=new Color[360];
+            double[] grayScaleDistances=new double[360];
+            double[] originalHueDistances=new double[360];
+
+            for (int i=0;i<360;i++){
+                Color testing=Color.hsb(i,color.getSaturation(),color.getBrightness());
+                possibleColors[i]=testing;
+
+                double minGrayScaleDist=1;
+                for (ColorLine line2 : this.colorList.getItems()){
+                    double dist=Math.abs(ColorLine.grayScaleLevel(line2.getColor())-ColorLine.grayScaleLevel(testing));
+                    if (line!=line2 && dist<minGrayScaleDist){
+                        minGrayScaleDist=dist;
+                    }
+                }
+                grayScaleDistances[i]=minGrayScaleDist;
+                originalHueDistances[i]=Math.abs(testing.getHue()-color.getHue());
+
+                //System.out.println(testing+" gsl:"+ColorLine.grayScaleLevel(testing)+" dist:"+minGrayScaleDist);
+            }
+
+            double bestScore=-1;
+            Color bestColor=null;
+
+            for (int i=0;i<360;i++){
+                double score=grayScaleDistances[i]*1000-originalHueDistances[i];
+                System.out.println(possibleColors[i]+" "+grayScaleDistances[i]+ " "+originalHueDistances[i]+" Score : "+score);
+                if (score>bestScore){
+                    bestScore=score;
+                    bestColor=possibleColors[i];
+                }
+            }
+
+            System.out.println("Best color found : "+bestColor);
+            line.setColor(bestColor);
+
+        }
     }
 
 

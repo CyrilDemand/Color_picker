@@ -75,9 +75,6 @@ public class ColorLine extends HBox{
         colorPicker.getStyleClass().add("button");
         this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,copyButton,line2,canvasColor,canvasGrayscale);
 
-
-
-
         this.update();
     }
 
@@ -123,6 +120,12 @@ public class ColorLine extends HBox{
         return ((ColorPicker)(this.getChildren().get(4))).getValue();
     }
 
+    public void setColor(Color bestColor) {
+        ((ColorPicker)this.getChildren().get(4)).setValue(bestColor);
+        this.setCanvas();
+        this.setTextField();
+    }
+
     public int getColorListIndex(){
         return this.main.colorList.getItems().indexOf(this);
     }
@@ -165,4 +168,6 @@ public class ColorLine extends HBox{
 
         return res;
     }
+
+
 }
