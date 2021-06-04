@@ -22,29 +22,17 @@ import java.text.DecimalFormat;
 import java.util.Collections;
 
 public class ColorLine extends HBox{
+    private static final int CANVAS_WIDTH=100;
 
-    Main main;
-
-    public ColorLine(Main main,Color defaultColor){
-        this.main=main;
+    public ColorLine(Color defaultColor){
 
         Button bUp=new Button("\uD83E\uDC09");
         bUp.addEventHandler(ActionEvent.ACTION, e->{
-            try {
-                Collections.swap(main.colorList.getItems(), getColorListIndex(), getColorListIndex() - 1);
-                selectCorrespondingListViewItem();
-            }catch (IndexOutOfBoundsException err){
-                System.out.println("already at the top");
-            }
+            this.moveUp();
         });
         Button bDown=new Button("\uD83E\uDC0B");
         bDown.addEventHandler(ActionEvent.ACTION, e->{
-            try {
-                Collections.swap(main.colorList.getItems(), getColorListIndex(), getColorListIndex() + 1);
-                selectCorrespondingListViewItem();
-            }catch (IndexOutOfBoundsException err){
-                System.out.println("already at the bottom");
-            }
+            this.moveDown();
         });
         Button bDelete=new Button("\uD83D\uDDD1");
         bDelete.addEventHandler(ActionEvent.ACTION, e->{
@@ -53,6 +41,8 @@ public class ColorLine extends HBox{
 
         Separator line1=new Separator();
         line1.setOrientation(Orientation.VERTICAL);
+        line1.setStyle("-fx-padding: 0 10 0 10;");
+
         ColorPicker colorPicker=new ColorPicker(defaultColor);
         colorPicker.setOnAction(new EventHandler() {
             public void handle(Event t) {
@@ -66,7 +56,7 @@ public class ColorLine extends HBox{
         Button copyButton=new Button("Copy");
         copyButton.addEventHandler(ActionEvent.ACTION, e->{
             String myString = ((TextField)this.getChildren().get(5)).getText();
-            System.out.println(myString);
+            //System.out.println(myString);
             StringSelection stringSelection = new StringSelection(myString);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(stringSelection, null);
@@ -74,8 +64,10 @@ public class ColorLine extends HBox{
 
         Separator line2=new Separator();
         line2.setOrientation(Orientation.VERTICAL);
-        Canvas canvasColor=new Canvas(200,25);
-        Canvas canvasGrayscale=new Canvas(200,25);
+        line2.setStyle("-fx-padding: 0 10 0 10;");
+
+        Canvas canvasColor=new Canvas(CANVAS_WIDTH,25);
+        Canvas canvasGrayscale=new Canvas(CANVAS_WIDTH,25);
 
         colorPicker.getStyleClass().add("button");
         this.getChildren().addAll(bUp,bDown,bDelete,line1,colorPicker,colorField,copyButton,line2,canvasColor,canvasGrayscale);
@@ -95,31 +87,56 @@ public class ColorLine extends HBox{
         this.update();
     }
 
+    public void moveUp(){
+        try {
+            Collections.swap(Main.colorList.getItems(), getColorListIndex(), getColorListIndex() - 1);
+            selectCorrespondingListViewItem();
+            FileManager.changeMade();
+        }catch (IndexOutOfBoundsException err){
+            //System.out.println("already at the top");
+        }
+    }
+
+    public void moveDown(){
+        try {
+            Collections.swap(Main.colorList.getItems(), getColorListIndex(), getColorListIndex() + 1);
+            selectCorrespondingListViewItem();
+            FileManager.changeMade();
+        }catch (IndexOutOfBoundsException err){
+            //System.out.println("already at the bottom");
+        }
+    }
+
     public void selectCorrespondingListViewItem(){
-        int i=this.main.colorList.getItems().indexOf(this);
-        System.out.println(i);
-        this.main.colorList.getFocusModel().focus(i);
-        this.main.colorList.getSelectionModel().select(i);
+        int i=Main.colorList.getItems().indexOf(this);
+        //System.out.println(i);
+        Main.colorList.getFocusModel().focus(i);
+        Main.colorList.getSelectionModel().select(i);
     }
 
     public void update(){
         this.setTextField();
         this.setCanvas();
+        PreviewRenderer.render();
+        FileManager.changeMade();
     }
 
     public void delete(){
-        main.colorList.getItems().remove(this);
+        Main.colorList.getItems().remove(this);
+        Main.lockButton();
+        PreviewRenderer.render();
+        FileManager.changeMade();
     }
 
     public ColorLine(Main main){
-        this(main,new Color(1,1,1,1));
+        this(new Color(1,1,1,1));
     }
 
     public TextField getTextField(){
         return (TextField) this.getChildren().get(5);
     }
     public void setTextField() {
-        getTextField().setText(ColorLine.colorToString(getColor(), this.main.colorMode.getValue()));
+        getTextField().setText(ColorLine.colorToString(getColor(), Main.colorMode.getValue()));
     }
     public Canvas getCanvasColor(){
         return (Canvas)this.getChildren().get(8);
@@ -130,14 +147,14 @@ public class ColorLine extends HBox{
     public void setCanvas(){
         GraphicsContext gc=this.getCanvasColor().getGraphicsContext2D();
         gc.setFill(this.getColor());
-        gc.fillRect(0,0,200,25);
+        gc.fillRect(0,0,CANVAS_WIDTH,25);
         gc.setStroke(new Color(0,0,0,1));
-        gc.strokeRect(0,0,200,25);
+        gc.strokeRect(0,0,CANVAS_WIDTH,25);
         gc=this.getCanvasGrayscale().getGraphicsContext2D();
         gc.setFill(ColorLine.toGrayscale(this.getColor()));
-        gc.fillRect(0,0,200,25);
+        gc.fillRect(0,0,CANVAS_WIDTH,25);
         gc.setStroke(new Color(0,0,0,1));
-        gc.strokeRect(0,0,200,25);
+        gc.strokeRect(0,0,CANVAS_WIDTH,25);
     }
 
     public Color getColor(){
@@ -151,7 +168,7 @@ public class ColorLine extends HBox{
     }
 
     public int getColorListIndex(){
-        return this.main.colorList.getItems().indexOf(this);
+        return Main.colorList.getItems().indexOf(this);
     }
 
     public static double grayScaleLevel(Color c){

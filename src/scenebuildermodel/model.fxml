@@ -3,13 +3,15 @@
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="490.0" prefWidth="821.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
    <children>
@@ -42,7 +44,23 @@
             <ComboBox prefWidth="150.0" promptText="Color Mode" />
          </items>
       </ToolBar>
-      <ListView prefHeight="247.0" prefWidth="822.0" />
-      <Canvas height="176.0" width="824.0" />
+      <ListView prefHeight="134.0" prefWidth="821.0" />
+      <HBox prefHeight="293.0" prefWidth="821.0">
+         <children>
+            <VBox prefHeight="289.0" prefWidth="401.0">
+               <children>
+                  <Label text="Before" />
+                  <Canvas height="200.0" width="200.0" />
+               </children>
+            </VBox>
+            <Separator orientation="VERTICAL" prefHeight="200.0" />
+            <VBox prefHeight="258.0" prefWidth="397.0">
+               <children>
+                  <Label text="After" />
+                  <Canvas height="200.0" width="200.0" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
    </children>
 </VBox>
