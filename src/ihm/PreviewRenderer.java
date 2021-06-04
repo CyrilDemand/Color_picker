@@ -36,7 +36,7 @@ public class PreviewRenderer {
 
         colors=new ArrayList<>();
         for (ColorLine line : Main.colorList.getItems()){
-            colors.add(ColorLine.toGrayscale(line.getColor()));
+            colors.add(ColorConverter.toGrayscale(line.getColor()));
         }
 
         PreviewRenderer.renderBars(colors,Main.afterCanvas);

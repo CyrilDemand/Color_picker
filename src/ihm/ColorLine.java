@@ -18,7 +18,6 @@ import javafx.scene.paint.Color;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.text.DecimalFormat;
 import java.util.Collections;
 
 public class ColorLine extends HBox{
@@ -136,7 +135,7 @@ public class ColorLine extends HBox{
         return (TextField) this.getChildren().get(5);
     }
     public void setTextField() {
-        getTextField().setText(ColorLine.colorToString(getColor(), Main.colorMode.getValue()));
+        getTextField().setText(ColorConverter.colorToString(getColor(), Main.colorMode.getValue()));
     }
     public Canvas getCanvasColor(){
         return (Canvas)this.getChildren().get(8);
@@ -151,7 +150,7 @@ public class ColorLine extends HBox{
         gc.setStroke(new Color(0,0,0,1));
         gc.strokeRect(0,0,CANVAS_WIDTH,25);
         gc=this.getCanvasGrayscale().getGraphicsContext2D();
-        gc.setFill(ColorLine.toGrayscale(this.getColor()));
+        gc.setFill(ColorConverter.toGrayscale(this.getColor()));
         gc.fillRect(0,0,CANVAS_WIDTH,25);
         gc.setStroke(new Color(0,0,0,1));
         gc.strokeRect(0,0,CANVAS_WIDTH,25);
@@ -170,45 +169,4 @@ public class ColorLine extends HBox{
     public int getColorListIndex(){
         return Main.colorList.getItems().indexOf(this);
     }
-
-    public static double grayScaleLevel(Color c){
-        return 0.3*c.getRed()+0.59*c.getGreen()+0.11*c.getBlue();
-    }
-
-    public static Color toGrayscale(Color c){
-        double grayScale=ColorLine.grayScaleLevel(c);
-        return new Color(grayScale,grayScale,grayScale,1);
-    }
-
-    public static String colorToString(Color c,String colorMode){
-        String res="";
-
-        double r=c.getRed(),
-                g=c.getGreen(),
-                b=c.getBlue(),
-                h=c.getHue(),
-                s=c.getSaturation(),
-                br=c.getBrightness();
-        String hexCode=c.toString();
-
-        if (colorMode.equals("r,g,b")){
-            res+=(int)(r*255)+", "+(int)(g*255)+", "+(int)(b*255);
-        }else if (colorMode.equals("r,g,b (1)")){
-            DecimalFormat f = new DecimalFormat("0.00");
-            res+=(Math.round(r * 1000.00) / 1000.00)+", "+(Math.round(g * 1000.00) / 1000.00)+", "+(Math.round(b * 1000.00) / 1000.00);
-        }else if (colorMode.equals("h,s,b")){
-            res+=(int)(h)+", "+(int)(s*255)+", "+(int)(br*255);
-        }else if (colorMode.equals("h,s,b (1)")){
-            DecimalFormat f = new DecimalFormat("0.00");
-            res+=(Math.round(h * 1000.00) / 1000.00)+", "+(Math.round(s * 1000.00) / 1000.00)+", "+(Math.round(br * 1000.00) / 1000.00);
-        }else if (colorMode.equals("#rrggbb")){
-            res+="#"+hexCode.substring(2,hexCode.length()-2);
-        }else if (colorMode.equals("0xrrggbb")){
-            res+=hexCode.substring(0,hexCode.length()-2);
-        }
-
-        return res;
-    }
-
-
 }

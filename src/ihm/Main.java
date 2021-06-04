@@ -1,8 +1,6 @@
 package ihm;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -26,15 +24,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 
-import java.awt.*;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
 
 /*
 TO DO
-    - Popups
-    - Ameliorer optimisation de couleur (teinte ET LUMINOSITE)
+    - CTRL+Z
  */
 
 public class Main extends Application {
@@ -45,6 +41,9 @@ public class Main extends Application {
     public static Button addColorButton;
     public static Canvas beforeCanvas;
     public static Canvas afterCanvas;
+
+    public static CheckMenuItem limitColor;
+    public static CheckMenuItem showWarningPopups;
 
     class AddColorButtonEvent implements EventHandler<ActionEvent>{
         public void handle(ActionEvent event){
@@ -70,12 +69,12 @@ public class Main extends Application {
         MenuItem newPalette=new MenuItem("New Palette");
         newPalette.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         newPalette.setOnAction(e -> {
-            FileManager.newFile();
+            FileManager.newFilePopup();
         });
         MenuItem openPalette=new MenuItem("Open Palette");
         openPalette.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         openPalette.setOnAction(e -> {
-            FileManager.openFile();
+            FileManager.openFilePopup();
         });
         MenuItem savePalette=new MenuItem("Save Palette");
         savePalette.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
@@ -83,13 +82,13 @@ public class Main extends Application {
             FileManager.saveFile();
         });
         MenuItem savePaletteAs=new MenuItem("Save Palette As");
-        savePaletteAs.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN,KeyCombination.SHIFT_DOWN));
+        savePaletteAs.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN,KeyCombination.SHIFT_DOWN));
         savePaletteAs.setOnAction(e -> {
             FileManager.saveAsFile();
         });
         MenuItem exit=new MenuItem("Exit");
         exit.setOnAction(e -> {
-            Platform.exit();
+            FileManager.exitPopup();
         });
 
         Menu fileMenu=new Menu("_File");
@@ -130,6 +129,18 @@ public class Main extends Application {
 
         editMenu.getItems().addAll(addColor,removeColor,new SeparatorMenuItem(),sortGrayscale,sortHue,new SeparatorMenuItem(),optimizeColors,randomizeColors);
 
+        Menu optionsMenu=new Menu("_Options");
+        limitColor = new CheckMenuItem("Limit to 10 colors");
+        limitColor.setOnAction(e->{
+            lockButton();
+        });
+        limitColor.setSelected(true);
+        showWarningPopups = new CheckMenuItem("Show warning popups");
+        showWarningPopups.setSelected(true);
+
+        optionsMenu.getItems().addAll(limitColor,showWarningPopups);
+
+
         Menu helpMenu=new Menu("_Help");
         MenuItem about=new MenuItem("About");
         about.setOnAction(e -> {
@@ -137,22 +148,25 @@ public class Main extends Application {
         });
         helpMenu.getItems().add(about);
 
-        menu.getMenus().addAll(fileMenu,editMenu,helpMenu);
+        menu.getMenus().addAll(fileMenu,editMenu,optionsMenu,helpMenu);
 
         //TOOL BAR
         ToolBar toolBar1=new ToolBar();
 
         addColorButton =new Button("Add a new color");
-
-
         addColorButton.addEventHandler(ActionEvent.ACTION, new AddColorButtonEvent());
+
+        Button optimizeColorsButton =new Button("Optimize Colors");
+        optimizeColorsButton.setOnAction(e->{
+            optimizeColors();
+        });
 
         colorMode=new ComboBox<String>();
         colorMode.getItems().addAll("r,g,b","r,g,b (1)","h,s,b","h,s,b (1)","#rrggbb","0xrrggbb");
         colorMode.getSelectionModel().select(0);
         colorMode.addEventHandler(ActionEvent.ACTION, new ColorModeChangeEvent());
 
-        toolBar1.getItems().addAll(addColorButton,new Label("Color Mode : "),colorMode);
+        toolBar1.getItems().addAll(addColorButton,new Label("Color Mode : "),colorMode,optimizeColorsButton);
 
         //COLOR LIST
         colorList=new ListView<ColorLine>();
@@ -191,12 +205,11 @@ public class Main extends Application {
         stage.setResizable(false);
         stage.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
         stage.setScene(scene);
-        stage.setTitle("Grayscale Color Picker");
         stage.show();
 
         stage.setOnCloseRequest(event -> {
-            System.out.println("Stage is closing");
-            // Save file
+            event.consume();
+            FileManager.exitPopup();
         });
 
         FileManager.newFile();
@@ -234,7 +247,7 @@ public class Main extends Application {
     }
 
     public static void addNewColor(Color color){
-        if (colorList.getItems().size()<10) {
+        if (colorList.getItems().size()<10 || !limitColor.isSelected()) {
             ColorLine ligneTest = new ColorLine(color);
             colorList.getItems().add(ligneTest);
             lockButton();
@@ -259,40 +272,36 @@ public class Main extends Application {
         for (ColorLine line : colorList.getItems()){
             Color color=line.getColor();
 
-            Color[] possibleColors=new Color[360];
-            double[] grayScaleDistances=new double[360];
-            double[] originalHueDistances=new double[360];
+            int precision=360;
 
-            for (int i=0;i<360;i++){
-                Color testing=Color.hsb(i,color.getSaturation(),color.getBrightness());
-                possibleColors[i]=testing;
+            double bestDistance=-1;
+            Color bestColor=null;
 
-                double minGrayScaleDist=1;
+            for (double i=0;i<precision;i++){
+                Color testing=Color.hsb(color.getHue(),color.getSaturation(),i/precision);
+                if (ColorConverter.grayScaleLevel(testing)<0.1 || ColorConverter.grayScaleLevel(testing)>0.9){
+                    continue;
+                }
+
+                double minGrayScaleDist=2;
                 for (ColorLine line2 : colorList.getItems()){
-                    double dist=Math.abs(ColorLine.grayScaleLevel(line2.getColor())-ColorLine.grayScaleLevel(testing));
+
+                    double dist=Math.abs(ColorConverter.grayScaleLevel(line2.getColor())-ColorConverter.grayScaleLevel(testing));
+                    //System.out.println("tested : "+ColorConverter.grayScaleLevel(line2.getColor())+" with "+ColorConverter.grayScaleLevel(testing)+" DIST : "+dist);
                     if (line!=line2 && dist<minGrayScaleDist){
                         minGrayScaleDist=dist;
                     }
                 }
-                grayScaleDistances[i]=minGrayScaleDist;
-                originalHueDistances[i]=Math.abs(testing.getHue()-color.getHue());
 
-                //System.out.println(testing+" gsl:"+ColorLine.grayScaleLevel(testing)+" dist:"+minGrayScaleDist);
-            }
-
-            double bestScore=-1;
-            Color bestColor=null;
-
-            for (int i=0;i<360;i++){
-                double score=grayScaleDistances[i]*1000-originalHueDistances[i];
-                //System.out.println(possibleColors[i]+" "+grayScaleDistances[i]+ " "+originalHueDistances[i]+" Score : "+score);
-                if (score>bestScore){
-                    bestScore=score;
-                    bestColor=possibleColors[i];
+                if (minGrayScaleDist>bestDistance){
+                    bestDistance=minGrayScaleDist;
+                    bestColor=testing;
                 }
+                //System.out.println(testing+" gsl:"+ColorConverter.grayScaleLevel(testing)+" dist:"+minGrayScaleDist);
+
+
             }
 
-            //System.out.println("Best color found : "+bestColor);
             line.setColor(bestColor);
         }
         PreviewRenderer.render();
@@ -324,7 +333,7 @@ public class Main extends Application {
         Collections.sort(colorList.getItems(), new Comparator<ColorLine>() {
             @Override
             public int compare(ColorLine o1, ColorLine o2) {
-                double gs1=ColorLine.grayScaleLevel(o1.getColor()),gs2=ColorLine.grayScaleLevel(o2.getColor());
+                double gs1=ColorConverter.grayScaleLevel(o1.getColor()),gs2=ColorConverter.grayScaleLevel(o2.getColor());
                 if (gs1>gs2)return 1;
                 else if (gs1==gs2) return 0;
                 else return -1;
@@ -336,7 +345,7 @@ public class Main extends Application {
 
     public static void lockButton(){
 
-        addColorButton.setDisable(colorList.getItems().size()>=10);
+        addColorButton.setDisable(colorList.getItems().size()>=10 && limitColor.isSelected());
 
         for (ColorLine line : colorList.getItems()){
             line.getChildren().get(2).setDisable(colorList.getItems().size()<=1);

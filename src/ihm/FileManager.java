@@ -1,5 +1,6 @@
 package ihm;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -8,33 +9,32 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Locale;
 import java.util.Scanner;
-import java.util.logging.Logger;
 
 public class FileManager {
 
     private static String path=null;
-    private static boolean asBeenSaved=true;
+    private static boolean hasBeenSaved=true;
+    private static Stage popup = new Stage();
 
     public static void changeMade(){
-        asBeenSaved=false;
-        System.out.println("change made");
+        hasBeenSaved=false;
+        Main.mainStage.setTitle("Color Picker *");
+    }
+    public static void noChanges(){
+        hasBeenSaved=true;
+        Main.mainStage.setTitle("Color Picker");
     }
 
     private static String getColorsAsText(){
@@ -49,42 +49,67 @@ public class FileManager {
         return res;
     }
 
-    public static void newFile(){
-        if (!asBeenSaved){
-            VBox root=new VBox();
-            Label message=new Label("Ton père le chauve");
-            message.setStyle("-fx-font-size: 12pt;");
-            message.setPadding(new Insets(10,10,10,10));
-            Separator line = new Separator();
-            line.setOrientation(Orientation.HORIZONTAL);
-            line.setPadding(new Insets(10,0,10,0));
+    public static void openCustomPopup(String msg,Button... buttons){
+        popup = new Stage();
 
-            HBox buttons=new HBox();
-            buttons.getChildren().add(new Button("Save"));
-            buttons.getChildren().add(new Button("Don't save"));
-            buttons.getChildren().add(new Button("Cancel"));
-            for (Node b : buttons.getChildren()){
-                HBox.setMargin(b,new Insets(10,10,10,10));
-            }
+        VBox root=new VBox();
+        Label message=new Label(msg);
+        message.setWrapText(true);
+        message.setStyle("-fx-font-size: 10pt;");
+        message.setPadding(new Insets(5,5,5,5));
+        Separator line = new Separator();
+        line.setOrientation(Orientation.HORIZONTAL);
+        line.setPadding(new Insets(10,0,10,0));
 
+        HBox buttonsRoot=new HBox();
 
-            root.getChildren().addAll(message,line,buttons);
-            final Stage popup = new Stage();
-            popup.initModality(Modality.APPLICATION_MODAL);
-            popup.initOwner(Main.mainStage);
-            popup.setResizable(false);
-            popup.setTitle("Popup");
-            popup.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
-            Scene dialogScene = new Scene(root, 500, 150);
-            popup.setScene(dialogScene);
-            popup.show();
+        buttonsRoot.getChildren().addAll(buttons);
+
+        for (Node b : buttonsRoot.getChildren()){
+            HBox.setMargin(b,new Insets(10,10,10,10));
         }
 
+        root.getChildren().addAll(message,line,buttonsRoot);
 
+        popup.initModality(Modality.APPLICATION_MODAL);
+        popup.initOwner(Main.mainStage);
+        popup.setResizable(false);
+        popup.setTitle("Popup");
+        popup.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
+        Scene dialogScene = new Scene(root, 300, 100);
+        popup.setScene(dialogScene);
+        popup.show();
+    }
+
+    public static void newFilePopup(){
+        if (!hasBeenSaved && Main.showWarningPopups.isSelected()){
+            Button save=new Button("Save");
+            save.setOnAction(e->{
+                popup.close();
+                FileManager.saveFile();
+                FileManager.newFile();
+
+            });
+            Button dontsave=new Button("Don't save");
+            dontsave.setOnAction(e->{
+                popup.close();
+                FileManager.newFile();
+            });
+            Button cancel=new Button("Cancel");
+            cancel.setOnAction(e->{
+                popup.close();
+            });
+            openCustomPopup("Do you want to save your palette before starting a new one ?",save,dontsave,cancel);
+        }else{
+            FileManager.newFile();
+        }
+
+    }
+
+    public static void newFile(){
         Main.colorList.getItems().clear();
         Main.addNewColor();
-        path=null;
-        asBeenSaved=true;
+        FileManager.noChanges();
     }
 
     public static void saveFile(){
@@ -96,7 +121,7 @@ public class FileManager {
         File file =new File(path);
         if (file!=null){
             FileManager.saveTextToFile(getColorsAsText(),file);
-            asBeenSaved=true;
+            FileManager.noChanges();
         }
     }
 
@@ -104,11 +129,36 @@ public class FileManager {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Color palette files (*.colors)", "*.colors");
         fileChooser.getExtensionFilters().add(extFilter);
+        if (path!=null)fileChooser.setInitialDirectory(new File(path+File.separator+".."));
         File file = fileChooser.showSaveDialog(Main.mainStage);
         if (file!=null){
             path=file.getPath();
             FileManager.saveTextToFile(getColorsAsText(),file);
-            asBeenSaved=true;
+            FileManager.noChanges();
+        }
+    }
+
+    public static void openFilePopup(){
+        if (!hasBeenSaved && Main.showWarningPopups.isSelected()){
+            Button save=new Button("Save");
+            save.setOnAction(e->{
+                popup.close();
+                FileManager.saveFile();
+                FileManager.openFile();
+
+            });
+            Button dontsave=new Button("Don't save");
+            dontsave.setOnAction(e->{
+                popup.close();
+                FileManager.openFile();
+            });
+            Button cancel=new Button("Cancel");
+            cancel.setOnAction(e->{
+                popup.close();
+            });
+            openCustomPopup("Do you want to save your palette before open up a new one ?",save,dontsave,cancel);
+        }else{
+            FileManager.openFile();
         }
     }
 
@@ -116,6 +166,7 @@ public class FileManager {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Color palette files (*.colors)", "*.colors");
         fileChooser.getExtensionFilters().add(extFilter);
+        if (path!=null)fileChooser.setInitialDirectory(new File(path+File.separator+".."));
         File file = fileChooser.showOpenDialog(Main.mainStage);
 
         if (file != null) {
@@ -130,7 +181,30 @@ public class FileManager {
             } catch (FileNotFoundException ignored) {
 
             }
-            asBeenSaved=true;
+            FileManager.noChanges();
+        }
+    }
+
+    public static void exitPopup(){
+        if (!hasBeenSaved && Main.showWarningPopups.isSelected()){
+            Button save=new Button("Save");
+            save.setOnAction(e->{
+                popup.close();
+                FileManager.saveFile();
+                Platform.exit();
+            });
+            Button dontsave=new Button("Don't save");
+            dontsave.setOnAction(e->{
+                popup.close();
+                Platform.exit();
+            });
+            Button cancel=new Button("Cancel");
+            cancel.setOnAction(e->{
+                popup.close();
+            });
+            openCustomPopup("Do you want to save your palette before exiting ?",save,dontsave,cancel);
+        }else{
+            Platform.exit();
         }
     }
 
