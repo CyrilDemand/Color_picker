@@ -1,7 +1,22 @@
 package ihm;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.awt.*;
 import java.io.File;
@@ -15,7 +30,7 @@ import java.util.logging.Logger;
 public class FileManager {
 
     private static String path=null;
-    private static boolean asBeenSaved=false;
+    private static boolean asBeenSaved=true;
 
     public static void changeMade(){
         asBeenSaved=false;
@@ -35,6 +50,37 @@ public class FileManager {
     }
 
     public static void newFile(){
+        if (!asBeenSaved){
+            VBox root=new VBox();
+            Label message=new Label("Ton père le chauve");
+            message.setStyle("-fx-font-size: 12pt;");
+            message.setPadding(new Insets(10,10,10,10));
+            Separator line = new Separator();
+            line.setOrientation(Orientation.HORIZONTAL);
+            line.setPadding(new Insets(10,0,10,0));
+
+            HBox buttons=new HBox();
+            buttons.getChildren().add(new Button("Save"));
+            buttons.getChildren().add(new Button("Don't save"));
+            buttons.getChildren().add(new Button("Cancel"));
+            for (Node b : buttons.getChildren()){
+                HBox.setMargin(b,new Insets(10,10,10,10));
+            }
+
+
+            root.getChildren().addAll(message,line,buttons);
+            final Stage popup = new Stage();
+            popup.initModality(Modality.APPLICATION_MODAL);
+            popup.initOwner(Main.mainStage);
+            popup.setResizable(false);
+            popup.setTitle("Popup");
+            popup.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
+            Scene dialogScene = new Scene(root, 500, 150);
+            popup.setScene(dialogScene);
+            popup.show();
+        }
+
+
         Main.colorList.getItems().clear();
         Main.addNewColor();
         path=null;

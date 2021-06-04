@@ -45,8 +45,9 @@ public class PreviewRenderer {
     private static void renderBars(List<Color> colors,Canvas canvas){
 
         double barWidth=canvas.getWidth()/colors.size();
+        double marge=barWidth*0.1;
 
-        PreviewRenderer.renderBackgroundGrid(canvas,new Color(0.9,0.9,0.9,1),new Color(0.7,0.7,0.7,1),barWidth,10);
+        PreviewRenderer.renderBackgroundGrid(canvas,new Color(0.95,0.95,0.95,1),new Color(0.75,0.75,0.75,1),barWidth,10);
 
         //System.out.println(barWidth);
         GraphicsContext gc=canvas.getGraphicsContext2D();
@@ -56,7 +57,8 @@ public class PreviewRenderer {
         for (int i=0;i<colors.size();i++){
             gc.setFill(colors.get(i));
             double height=values.get(i)*canvas.getHeight();
-            gc.fillRect(i*barWidth,canvas.getHeight()-height,barWidth,height);
+
+            gc.fillRect(i*barWidth+marge,canvas.getHeight()-height,barWidth-2*marge,height);
         }
     }
 

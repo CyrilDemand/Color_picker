@@ -1,6 +1,7 @@
 package ihm;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
@@ -20,6 +21,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 
@@ -30,9 +33,8 @@ import java.util.Comparator;
 
 /*
 TO DO
-    - Ameliorate optimisation de couleur (teinte ET LUMINOSITE)
-    - new/open/save
-
+    - Popups
+    - Ameliorer optimisation de couleur (teinte ET LUMINOSITE)
  */
 
 public class Main extends Application {
@@ -54,30 +56,6 @@ public class Main extends Application {
             for (ColorLine line : colorList.getItems()){
                 line.setTextField();
             }
-        }
-    }
-
-    public  static void addNewColor(){
-        addNewColor(new Color(1,1,1,1));
-        FileManager.changeMade();
-    }
-
-    public static void addNewColor(Color color){
-        if (colorList.getItems().size()<10) {
-            ColorLine ligneTest = new ColorLine(color);
-            colorList.getItems().add(ligneTest);
-            lockButton();
-            PreviewRenderer.render();
-            FileManager.changeMade();
-        }
-    }
-
-    public void removeSelectedColor(){
-        if (colorList.getItems().size()>1){
-            colorList.requestFocus();
-            colorList.getSelectionModel().getSelectedItems().get(0).delete();
-            colorList.getSelectionModel().select(-1);
-            FileManager.changeMade();
         }
     }
 
@@ -110,6 +88,9 @@ public class Main extends Application {
             FileManager.saveAsFile();
         });
         MenuItem exit=new MenuItem("Exit");
+        exit.setOnAction(e -> {
+            Platform.exit();
+        });
 
         Menu fileMenu=new Menu("_File");
         fileMenu.getItems().addAll(newPalette,openPalette,savePalette,savePaletteAs,new SeparatorMenuItem(),exit);
@@ -152,12 +133,7 @@ public class Main extends Application {
         Menu helpMenu=new Menu("_Help");
         MenuItem about=new MenuItem("About");
         about.setOnAction(e -> {
-            Alert infoBox = new Alert(Alert.AlertType.INFORMATION);
-            infoBox.setHeaderText("This application was created during a programming project with java and javafx\n" +
-                                  "Application created by Noé Delcroix & Cyril Demand\n");
-            infoBox.setContentText("2021 - All rights reserved");
-            infoBox.setTitle("About");
-            infoBox.show();
+            showAbout();
         });
         helpMenu.getItems().add(about);
 
@@ -186,25 +162,32 @@ public class Main extends Application {
         //PREVIEW ZONE
         HBox rootPreview = new HBox();
 
+        ToolBar toolBar2=new ToolBar();
+        Label preview=new Label("Preview : ");
+        preview.setStyle("-fx-font-size: 15pt;"+"-fx-font-weight: bold");
+        toolBar2.getItems().add(preview);
+
         VBox before=new VBox();
-        Label beforeTxt=new Label("Before : ");
-        beforeCanvas=new Canvas(350,350);
+        Label beforeTxt=new Label("Before");
+        beforeTxt.setStyle("-fx-font-size: 12pt;");
+        beforeCanvas=new Canvas(350,300);
         before.getChildren().addAll(beforeTxt,beforeCanvas);
 
         Separator line=new Separator();
         line.setOrientation(Orientation.VERTICAL);
 
         VBox after=new VBox();
-        Label afterTxt=new Label("After : ");
-        afterCanvas=new Canvas(350,350);
+        Label afterTxt=new Label("After");
+        afterTxt.setStyle("-fx-font-size: 12pt;");
+        afterCanvas=new Canvas(350,300);
         after.getChildren().addAll(afterTxt,afterCanvas);
 
         rootPreview.getChildren().addAll(before,line,after);
 
 
-        root.getChildren().addAll(menu,toolBar1,colorList,rootPreview);
+        root.getChildren().addAll(menu,toolBar1,colorList,toolBar2,rootPreview);
 
-        Scene scene = new Scene(root, 700, 700);
+        Scene scene = new Scene(root, 700, 720);
         stage.setResizable(false);
         stage.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
         stage.setScene(scene);
@@ -216,7 +199,59 @@ public class Main extends Application {
             // Save file
         });
 
-        addNewColor();
+        FileManager.newFile();
+    }
+
+    public static void showAbout(){
+        VBox root=new VBox();
+        Image img=new Image(File.separator+"ressources"+File.separator+"icon.png");
+        ImageView imgView=new ImageView(img);
+        imgView.setFitHeight(200);
+        imgView.setFitWidth(200);
+        imgView.setTranslateX(520/2-200/2);
+        Label txt=new Label("This program as been created during a java/javafx project.\n"+
+                                "Application made by Noé Delcroix & Cyril Demand.\n"+
+                                "2021 - All rights reserved");
+        txt.setWrapText(true);
+        txt.setTextAlignment(TextAlignment.CENTER);
+        txt.setStyle("-fx-font-size: 15pt;");
+
+        root.getChildren().addAll(imgView,txt);
+        final Stage about = new Stage();
+        about.initModality(Modality.APPLICATION_MODAL);
+        about.initOwner(Main.mainStage);
+        about.setResizable(false);
+        about.setTitle("About this program");
+        about.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
+        Scene dialogScene = new Scene(root, 520, 300);
+        about.setScene(dialogScene);
+        about.show();
+    }
+
+    public  static void addNewColor(){
+        addNewColor(new Color(1,1,1,1));
+        FileManager.changeMade();
+    }
+
+    public static void addNewColor(Color color){
+        if (colorList.getItems().size()<10) {
+            ColorLine ligneTest = new ColorLine(color);
+            colorList.getItems().add(ligneTest);
+            lockButton();
+            PreviewRenderer.render();
+            FileManager.changeMade();
+        }
+    }
+
+    public void removeSelectedColor(){
+        if (colorList.getItems().size()>1){
+            colorList.requestFocus();
+            if (colorList.getSelectionModel().getSelectedItems().size()!=0) {
+                colorList.getSelectionModel().getSelectedItems().get(0).delete();
+                colorList.getSelectionModel().select(-1);
+                FileManager.changeMade();
+            }
+        }
     }
 
     public void optimizeColors(){
@@ -266,7 +301,7 @@ public class Main extends Application {
 
     public void randomizeColors(){
         for (ColorLine line : colorList.getItems()){
-            line.setColor(new Color(Math.random(),Math.random(),Math.random(),1));
+            line.setColor(Color.hsb(Math.random()*360,1,1));
         }
         PreviewRenderer.render();
         FileManager.changeMade();
