@@ -20,19 +20,39 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Scanner;
 
 public class FileManager {
+
+    private static List<Color> savedState=null;
 
     private static String path=null;
     private static boolean hasBeenSaved=true;
     private static Stage popup = new Stage();
 
-    public static void changeMade(){
-        hasBeenSaved=false;
-        Main.mainStage.setTitle("Color Picker *");
+    public static void changeMade(boolean addHistory){
+
+        if (HistoryManager.isCurrentDifferent()){
+            hasBeenSaved=false;
+            Main.mainStage.setTitle("Color Picker *");
+            if (addHistory)
+            HistoryManager.save();
+        }
+        if (!HistoryManager.isDifferent(savedState)){
+            noChanges(false);
+        }
+
     }
-    public static void noChanges(){
+    public static void setHasBeenSaved(boolean hbs){
+        hasBeenSaved=hbs;
+    }
+
+    public static List<Color> getSavedState(){
+        return savedState;
+    }
+    public static void noChanges(boolean resetHistory){
+        if (resetHistory)HistoryManager.clear();
         hasBeenSaved=true;
         Main.mainStage.setTitle("Color Picker");
     }
@@ -109,7 +129,9 @@ public class FileManager {
     public static void newFile(){
         Main.colorList.getItems().clear();
         Main.addNewColor();
-        FileManager.noChanges();
+        FileManager.noChanges(true);
+        HistoryManager.save();
+        savedState=HistoryManager.getCurrentHistoryData();
     }
 
     public static void saveFile(){
@@ -121,7 +143,8 @@ public class FileManager {
         File file =new File(path);
         if (file!=null){
             FileManager.saveTextToFile(getColorsAsText(),file);
-            FileManager.noChanges();
+            FileManager.noChanges(false);
+            savedState=HistoryManager.getCurrentHistoryData();
         }
     }
 
@@ -134,7 +157,8 @@ public class FileManager {
         if (file!=null){
             path=file.getPath();
             FileManager.saveTextToFile(getColorsAsText(),file);
-            FileManager.noChanges();
+            FileManager.noChanges(false);
+            savedState=HistoryManager.getCurrentHistoryData();
         }
     }
 
@@ -181,7 +205,9 @@ public class FileManager {
             } catch (FileNotFoundException ignored) {
 
             }
-            FileManager.noChanges();
+            FileManager.noChanges(true);
+            HistoryManager.save();
+            savedState=HistoryManager.getCurrentHistoryData();
         }
     }
 

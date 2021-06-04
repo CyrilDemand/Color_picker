@@ -95,6 +95,19 @@ public class Main extends Application {
         fileMenu.getItems().addAll(newPalette,openPalette,savePalette,savePaletteAs,new SeparatorMenuItem(),exit);
 
         Menu editMenu=new Menu("_Edit");
+
+        MenuItem undo=new MenuItem("Undo");
+        undo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
+        undo.setOnAction(e -> {
+            HistoryManager.undo();
+        });
+        MenuItem redo=new MenuItem("Redo");
+        redo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN,KeyCombination.SHIFT_DOWN));
+        redo.setOnAction(e -> {
+            HistoryManager.redo();
+        });
+
+
         MenuItem addColor=new MenuItem("Add a new color");
         addColor.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN));
         addColor.setOnAction(e -> {
@@ -127,7 +140,7 @@ public class Main extends Application {
             randomizeColors();
         });
 
-        editMenu.getItems().addAll(addColor,removeColor,new SeparatorMenuItem(),sortGrayscale,sortHue,new SeparatorMenuItem(),optimizeColors,randomizeColors);
+        editMenu.getItems().addAll(undo,redo,new SeparatorMenuItem(),addColor,removeColor,new SeparatorMenuItem(),sortGrayscale,sortHue,new SeparatorMenuItem(),optimizeColors,randomizeColors);
 
         Menu optionsMenu=new Menu("_Options");
         limitColor = new CheckMenuItem("Limit to 10 colors");
@@ -173,6 +186,7 @@ public class Main extends Application {
         colorList.setMaxHeight(300);
         colorList.setMinHeight(300);
 
+
         //PREVIEW ZONE
         HBox rootPreview = new HBox();
 
@@ -186,6 +200,7 @@ public class Main extends Application {
         beforeTxt.setStyle("-fx-font-size: 12pt;");
         beforeCanvas=new Canvas(350,300);
         before.getChildren().addAll(beforeTxt,beforeCanvas);
+
 
         Separator line=new Separator();
         line.setOrientation(Orientation.VERTICAL);
@@ -211,7 +226,6 @@ public class Main extends Application {
             event.consume();
             FileManager.exitPopup();
         });
-
         FileManager.newFile();
     }
 
@@ -241,9 +255,8 @@ public class Main extends Application {
         about.show();
     }
 
-    public  static void addNewColor(){
+    public static void addNewColor(){
         addNewColor(new Color(1,1,1,1));
-        FileManager.changeMade();
     }
 
     public static void addNewColor(Color color){
@@ -252,7 +265,7 @@ public class Main extends Application {
             colorList.getItems().add(ligneTest);
             lockButton();
             PreviewRenderer.render();
-            FileManager.changeMade();
+            FileManager.changeMade(true);
         }
     }
 
@@ -262,7 +275,7 @@ public class Main extends Application {
             if (colorList.getSelectionModel().getSelectedItems().size()!=0) {
                 colorList.getSelectionModel().getSelectedItems().get(0).delete();
                 colorList.getSelectionModel().select(-1);
-                FileManager.changeMade();
+                FileManager.changeMade(true);
             }
         }
     }
@@ -305,7 +318,7 @@ public class Main extends Application {
             line.setColor(bestColor);
         }
         PreviewRenderer.render();
-        FileManager.changeMade();
+        FileManager.changeMade(true);
     }
 
     public void randomizeColors(){
@@ -313,7 +326,7 @@ public class Main extends Application {
             line.setColor(Color.hsb(Math.random()*360,1,1));
         }
         PreviewRenderer.render();
-        FileManager.changeMade();
+        FileManager.changeMade(true);
     }
 
     public void sortByHue(){
@@ -327,7 +340,7 @@ public class Main extends Application {
             }
         });
         PreviewRenderer.render();
-        FileManager.changeMade();
+        FileManager.changeMade(true);
     }
     public void sortByGrayscale(){
         Collections.sort(colorList.getItems(), new Comparator<ColorLine>() {
@@ -340,7 +353,7 @@ public class Main extends Application {
             }
         });
         PreviewRenderer.render();
-        FileManager.changeMade();
+        FileManager.changeMade(true);
     }
 
     public static void lockButton(){

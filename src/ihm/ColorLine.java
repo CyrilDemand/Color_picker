@@ -45,7 +45,7 @@ public class ColorLine extends HBox{
         ColorPicker colorPicker=new ColorPicker(defaultColor);
         colorPicker.setOnAction(new EventHandler() {
             public void handle(Event t) {
-                update();
+                update(true);
             }
         });
         TextField colorField=new TextField();
@@ -83,14 +83,14 @@ public class ColorLine extends HBox{
             });
         }
 
-        this.update();
+        this.update(false);
     }
 
     public void moveUp(){
         try {
             Collections.swap(Main.colorList.getItems(), getColorListIndex(), getColorListIndex() - 1);
             selectCorrespondingListViewItem();
-            FileManager.changeMade();
+            FileManager.changeMade(true);
         }catch (IndexOutOfBoundsException err){
             //System.out.println("already at the top");
         }
@@ -100,7 +100,7 @@ public class ColorLine extends HBox{
         try {
             Collections.swap(Main.colorList.getItems(), getColorListIndex(), getColorListIndex() + 1);
             selectCorrespondingListViewItem();
-            FileManager.changeMade();
+            FileManager.changeMade(true);
         }catch (IndexOutOfBoundsException err){
             //System.out.println("already at the bottom");
         }
@@ -113,18 +113,19 @@ public class ColorLine extends HBox{
         Main.colorList.getSelectionModel().select(i);
     }
 
-    public void update(){
+    public void update(boolean change){
         this.setTextField();
         this.setCanvas();
         PreviewRenderer.render();
-        FileManager.changeMade();
+        if (change)
+        FileManager.changeMade(true);
     }
 
     public void delete(){
         Main.colorList.getItems().remove(this);
         Main.lockButton();
         PreviewRenderer.render();
-        FileManager.changeMade();
+        FileManager.changeMade(true);
     }
 
     public ColorLine(Main main){
