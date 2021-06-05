@@ -179,7 +179,7 @@ public class Main extends Application {
         colorMode.getSelectionModel().select(0);
         colorMode.addEventHandler(ActionEvent.ACTION, new ColorModeChangeEvent());
 
-        toolBar1.getItems().addAll(addColorButton,new Label("Color Mode : "),colorMode,optimizeColorsButton);
+        toolBar1.getItems().addAll(addColorButton,optimizeColorsButton,new Label("Color Mode : "),colorMode);
 
         //COLOR LIST
         colorList=new ListView<ColorLine>();

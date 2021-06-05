@@ -21,9 +21,9 @@ public class HistoryManager {
         if (currentPos>0){
             currentPos--;
             loadHistory();
-            System.out.println("current pos : "+currentPos);
+            /*System.out.println("current pos : "+currentPos);
             System.out.println("history : "+history);
-            System.out.println("current state "+getCurrentHistoryData()+" saved state "+FileManager.getSavedState());
+            System.out.println("current state "+getCurrentHistoryData()+" saved state "+FileManager.getSavedState());*/
 
             if (!isDifferent(FileManager.getSavedState())){
                 FileManager.noChanges(false);
@@ -37,9 +37,9 @@ public class HistoryManager {
         if (currentPos<history.size()){
             currentPos++;
             loadHistory();
-            System.out.println("current pos : "+currentPos);
+            /*System.out.println("current pos : "+currentPos);
             System.out.println("history : "+history);
-            System.out.println("current state "+getCurrentHistoryData()+" saved state "+FileManager.getSavedState());
+            System.out.println("current state "+getCurrentHistoryData()+" saved state "+FileManager.getSavedState());*/
 
             if (!isDifferent(FileManager.getSavedState())){
                 FileManager.noChanges(false);
