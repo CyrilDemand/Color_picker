@@ -96,7 +96,7 @@ public class FileManager {
         popup.setResizable(false);
         popup.setTitle("Popup");
         popup.getIcons().add(new Image(File.separator+"ressources"+File.separator+"icon.png"));
-        Scene dialogScene = new Scene(root, 300, 100);
+        Scene dialogScene = new Scene(root, 400, 100);
         popup.setScene(dialogScene);
         popup.show();
     }
